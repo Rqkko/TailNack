@@ -88,7 +88,8 @@ struct ContentView: View {
                                     .frame(width: 28, height: 28)
                                     .foregroundColor(.blue)
                             }
-                            .padding(.leading, 8)
+                            .padding(.leading, 16)
+                            .padding(.trailing, 16)
                         }
                         .padding(.vertical, 6)
                     }
