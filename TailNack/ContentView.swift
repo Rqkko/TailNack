@@ -5,7 +5,9 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: [SortDescriptor(\FingerNail.sortIndex)]) private var nails: [FingerNail]
     @State private var undoStack: [FingerNail] = []
-
+    @State private var selectedNail: FingerNail?
+    @State private var selectedSize: Int = 0
+    @State private var showingSizePicker = false
 
     var body: some View {
         NavigationView {
@@ -30,25 +32,67 @@ struct ContentView: View {
                     // Nail buttons
                     ForEach(nails) { nail in
                         HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(nail.name)
+                                    .font(.headline)
+
+                                Text("Used: \(nail.usageCount)")
+                                    .font(.subheadline)
+
+                                Text("Last: \(nail.lastUsed?.formatted() ?? "-")")
+                                    .font(.footnote)
+                                    .foregroundColor(.gray)
+                            }
+
+                            Spacer()
+                            
+                            Button(action: {
+                                selectedNail = nail
+                                selectedSize = nail.size ?? 0
+                                showingSizePicker = true
+                            }) {
+                                HStack {
+                                    Text("Size: \(nail.size.map(String.init) ?? "-")")
+                                }
+                                .padding(.trailing, 16)
+                            }
+                            .sheet(isPresented: $showingSizePicker) {
+                                VStack {
+                                    Text("Select Size")
+                                        .font(.headline)
+
+                                    Picker("Size", selection: $selectedSize) {
+                                        ForEach(0...10, id: \.self) {
+                                            Text("\($0)").tag($0)
+                                        }
+                                    }
+                                    .pickerStyle(.wheel)
+                                    .frame(height: 150)
+
+                                    Button("Done") {
+                                        if let nail = selectedNail {
+                                            nail.size = selectedSize
+                                        }
+                                        showingSizePicker = false
+                                    }
+                                    .padding()
+                                }
+                            }
+
+
                             Button(action: {
                                 increment(nail)
                             }) {
-                                VStack(alignment: .leading) {
-                                    Text(nail.name)
-                                        .font(.headline)
-                                    Text("Used: \(nail.usageCount)")
-                                        .font(.subheadline)
-                                    if let lastUsed = nail.lastUsed {
-                                        Text("Last used: \(lastUsed.formatted(date: .abbreviated, time: .shortened))")
-                                            .font(.caption)
-                                    }
-                                }
-                                .padding()
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                                Image(systemName: "plus.circle.fill")
+                                    .resizable()
+                                    .frame(width: 28, height: 28)
+                                    .foregroundColor(.blue)
                             }
+                            .padding(.leading, 8)
                         }
-                        .padding(.horizontal)
+                        .padding(.vertical, 6)
                     }
+
                 }
                 .padding(.bottom)
             }
