@@ -10,52 +10,63 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
+    @Query private var nails: [FingerNail]
 
     var body: some View {
-        NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
+        NavigationView {
+            VStack(spacing: 20) {
+                ForEach(nails) { nail in
+                    HStack {
+                        Button(action: {
+                            increment(nail)
+                        }) {
+                            VStack(alignment: .leading) {
+                                Text(nail.name)
+                                    .font(.headline)
+                                Text("Used: \(nail.usageCount)")
+                                    .font(.subheadline)
+                                if let lastUsed = nail.lastUsed {
+                                    Text("Last used: \(lastUsed.formatted(date: .abbreviated, time: .shortened))")
+                                        .font(.caption)
+                                }
+                            }
+                            .padding()
+                        }
+                        Spacer()
+                        Button("Undo") {
+                            undo(nail)
+                        }
+                        .disabled(nail.usageCount == 0)
                     }
-                }
-                .onDelete(perform: deleteItems)
-            }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
+                    .padding(.horizontal)
                 }
             }
-        } detail: {
-            Text("Select an item")
-        }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
+            .navigationTitle("TailNack")
+            .onAppear {
+                if nails.isEmpty { seedInitialNails() }
             }
         }
     }
-}
 
-#Preview {
-    ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
+    private func increment(_ nail: FingerNail) {
+        nail.usageCount += 1
+        nail.lastUsed = Date()
+    }
+
+    private func undo(_ nail: FingerNail) {
+        if nail.usageCount > 0 {
+            nail.usageCount -= 1
+        }
+    }
+
+    private func seedInitialNails() {
+        let names = [
+            "Left Thumb", "Left Index", "Left Middle", "Left Ring", "Left Pinky",
+            "Right Thumb", "Right Index", "Right Middle", "Right Ring", "Right Pinky"
+        ]
+        for name in names {
+            let nail = FingerNail(name: name)
+            modelContext.insert(nail)
+        }
+    }
 }
