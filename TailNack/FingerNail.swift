@@ -3,13 +3,13 @@ import Foundation
 
 @Model
 class FingerNail {
-    var name: String       // e.g., "Left Thumb", "Right Index"
-    var usageCount: Int
-    var lastUsed: Date?
+    var name: String
+    var usageTimestamps: [Date] = []
 
-    init(name: String, usageCount: Int = 0, lastUsed: Date? = nil) {
+    var usageCount: Int { usageTimestamps.count }
+    var lastUsed: Date? { usageTimestamps.last }
+
+    init(name: String) {
         self.name = name
-        self.usageCount = usageCount
-        self.lastUsed = lastUsed
     }
 }

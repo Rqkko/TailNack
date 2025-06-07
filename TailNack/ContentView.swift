@@ -18,7 +18,7 @@ struct ContentView: View {
                             .fontWeight(.bold)
                         Spacer()
                         Button("Undo") {
-                            undoLast()
+                            undo()
                         }
                         .disabled(undoStack.isEmpty)
                     }
@@ -59,26 +59,14 @@ struct ContentView: View {
     }
 
     private func increment(_ nail: FingerNail) {
-        nail.usageCount += 1
-        nail.lastUsed = Date()
+        nail.usageTimestamps.append(Date())
         undoStack.append(nail)
     }
 
-    private func undo(_ nail: FingerNail) {
-        guard nail.usageCount > 0 else { return }
-        nail.usageCount -= 1
-
-        // Remove the *most recent* occurrence of this nail from the undo stack
-        if let lastIndex = undoStack.lastIndex(where: { $0.id == nail.id }) {
-            undoStack.remove(at: lastIndex)
-        }
-    }
-
-    private func undoLast() {
+    private func undo() {
         guard let last = undoStack.popLast() else { return }
-        if last.usageCount > 0 {
-            last.usageCount -= 1
-        }
+        guard !last.usageTimestamps.isEmpty else { return }
+        last.usageTimestamps.removeLast()
     }
 
     private func seedInitialNails() {
