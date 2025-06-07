@@ -1,21 +1,33 @@
-//
-//  ContentView.swift
-//  TailNack
-//
-//  Created by Wongsathorn Chengcharoen on 7/6/2568 BE.
-//
-
 import SwiftUI
 import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var nails: [FingerNail]
+    @State private var undoStack: [FingerNail] = []
+
 
     var body: some View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 20) {
+                    // Fixed header with title and Undo button
+                    HStack {
+                        Text("TailNack")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                        Spacer()
+                        Button("Undo") {
+                            undoLast()
+                        }
+                        .disabled(undoStack.isEmpty)
+                    }
+                    .padding(.horizontal)
+                    .padding(.top)
+
+                    Divider()
+
+                    // Nail buttons
                     ForEach(nails) { nail in
                         HStack {
                             Button(action: {
@@ -34,30 +46,38 @@ struct ContentView: View {
                                 .padding()
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             }
-                            Button("Undo") {
-                                undo(nail)
-                            }
-                            .disabled(nail.usageCount == 0)
-                            .padding(.trailing)
                         }
                         .padding(.horizontal)
                     }
                 }
-                .navigationTitle("TailNack")
-                .padding(.top)
+                .padding(.bottom)
             }
-            .navigationTitle("TailNack")
+        }
+        .onAppear {
+            if nails.isEmpty { seedInitialNails() }
         }
     }
 
     private func increment(_ nail: FingerNail) {
         nail.usageCount += 1
         nail.lastUsed = Date()
+        undoStack.append(nail)
     }
 
     private func undo(_ nail: FingerNail) {
-        if nail.usageCount > 0 {
-            nail.usageCount -= 1
+        guard nail.usageCount > 0 else { return }
+        nail.usageCount -= 1
+
+        // Remove the *most recent* occurrence of this nail from the undo stack
+        if let lastIndex = undoStack.lastIndex(where: { $0.id == nail.id }) {
+            undoStack.remove(at: lastIndex)
+        }
+    }
+
+    private func undoLast() {
+        guard let last = undoStack.popLast() else { return }
+        if last.usageCount > 0 {
+            last.usageCount -= 1
         }
     }
 
