@@ -3,7 +3,7 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var nails: [FingerNail]
+    @Query(sort: [SortDescriptor(\FingerNail.sortIndex)]) private var nails: [FingerNail]
     @State private var undoStack: [FingerNail] = []
 
 
@@ -71,11 +71,20 @@ struct ContentView: View {
 
     private func seedInitialNails() {
         let names = [
-            "Left Thumb", "Left Index", "Left Middle", "Left Ring", "Left Pinky",
-            "Right Thumb", "Right Index", "Right Middle", "Right Ring", "Right Pinky"
+            "Left Thumb",
+            "Left Index",
+            "Left Middle",
+            "Left Ring",
+            "Left Pinky",
+            "Right Thumb",
+            "Right Index",
+            "Right Middle",
+            "Right Ring",
+            "Right Pinky"
         ]
-        for name in names {
-            let nail = FingerNail(name: name)
+
+        for (index, name) in names.enumerated() {
+            let nail = FingerNail(name: name, sortIndex: index)
             modelContext.insert(nail)
         }
     }
