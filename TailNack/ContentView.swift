@@ -14,37 +14,39 @@ struct ContentView: View {
 
     var body: some View {
         NavigationView {
-            VStack(spacing: 20) {
-                ForEach(nails) { nail in
-                    HStack {
-                        Button(action: {
-                            increment(nail)
-                        }) {
-                            VStack(alignment: .leading) {
-                                Text(nail.name)
-                                    .font(.headline)
-                                Text("Used: \(nail.usageCount)")
-                                    .font(.subheadline)
-                                if let lastUsed = nail.lastUsed {
-                                    Text("Last used: \(lastUsed.formatted(date: .abbreviated, time: .shortened))")
-                                        .font(.caption)
+            ScrollView {
+                VStack(spacing: 20) {
+                    ForEach(nails) { nail in
+                        HStack {
+                            Button(action: {
+                                increment(nail)
+                            }) {
+                                VStack(alignment: .leading) {
+                                    Text(nail.name)
+                                        .font(.headline)
+                                    Text("Used: \(nail.usageCount)")
+                                        .font(.subheadline)
+                                    if let lastUsed = nail.lastUsed {
+                                        Text("Last used: \(lastUsed.formatted(date: .abbreviated, time: .shortened))")
+                                            .font(.caption)
+                                    }
                                 }
+                                .padding()
+                                .frame(maxWidth: .infinity, alignment: .leading)
                             }
-                            .padding()
+                            Button("Undo") {
+                                undo(nail)
+                            }
+                            .disabled(nail.usageCount == 0)
+                            .padding(.trailing)
                         }
-                        Spacer()
-                        Button("Undo") {
-                            undo(nail)
-                        }
-                        .disabled(nail.usageCount == 0)
+                        .padding(.horizontal)
                     }
-                    .padding(.horizontal)
                 }
+                .navigationTitle("TailNack")
+                .padding(.top)
             }
             .navigationTitle("TailNack")
-            .onAppear {
-                if nails.isEmpty { seedInitialNails() }
-            }
         }
     }
 
